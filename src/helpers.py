@@ -110,11 +110,36 @@ def remove_file(folder, filename):
         return False
 
 
+def read_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        logger.warning(f"File not found at: {file_path}")
+    except PermissionError:
+        logger.error(f"No read permission for file: {file_path}")
+    return None
+
+
 def request(url, method, enable_5xx=False, payload=None):
     enforce_status_codes = list() if enable_5xx else [500, 502, 503, 504]
 
     username = os.getenv("REQ_USERNAME")
     password = os.getenv("REQ_PASSWORD")
+    # Check if REQ_USERNAME_FILE is configured and override the username with the content of the file
+    username_file_path = os.getenv("REQ_USERNAME_FILE")
+    if username_file_path:
+        username_from_file = read_file_content(username_file_path)
+        if username_from_file is not None:
+            username = username_from_file
+
+    # Check if REQ_PASSWORD_FILE is configured and override the password with the content of the file
+    password_file_path = os.getenv("REQ_PASSWORD_FILE")
+    if password_file_path:
+        password_from_file = read_file_content(password_file_path)
+        if password_from_file is not None:
+            password = password_from_file
+
     encoding = 'latin1' if not os.getenv("REQ_BASIC_AUTH_ENCODING") else os.getenv("REQ_BASIC_AUTH_ENCODING")
     if username and password:
         auth = HTTPBasicAuth(username.encode(encoding), password.encode(encoding))
