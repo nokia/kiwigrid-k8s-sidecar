@@ -118,6 +118,8 @@ def read_file_content(file_path):
         logger.warning(f"File not found at: {file_path}")
     except PermissionError:
         logger.error(f"No read permission for file: {file_path}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
     return None
 
 
